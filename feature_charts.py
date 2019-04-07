@@ -24,25 +24,24 @@ def get_number_of_windows(sound_file) :
     return(nb_windows)
 
 
-def get_number_of_lines_in_file(alignement_file) : 
-    #Gets the number of lines in a alignement file
-    with open(alignement_file) as file :
+def get_number_of_lines_in_file(alignment_file) : 
+    #Gets the number of lines in a alignment file
+    with open(alignment_file) as file :
         for i, line in enumerate(file):
             pass
     return(i + 1)
 
-
-def real_time_table(alignement_file) : 
-    #creates a dictionnary contraining for each phoneme its label, the start time stamp
+def parse_alignment_file(path_alignment_file):
+#creates a dictionnary contraining for each phoneme its label, the start time stamp
     #and the end time stamp. The entry is an aligmenent file in .txt. The key is the strat time
 
-    with open(alignement_file, "r") as file:
-        real_times = pd.DataFrame(
-            [line.split() for line in file], columns=('phoneme', 'start', 'end')
-        )
-        real_times['start'] = real_times['start'].astype(float)
-        real_times['end'] = real_times['end'].astype(float)
-    return(real_times)
+    for alignment_file in os.listdir(path_alignment_file):
+        if alignment_file.endswith('_phone.txt') :
+            with open(alignment_file, 'r') as file:
+                df_alignment = pd.DataFrame([line.split() for line in file], columns=('file_name', 'start', 'end', 'phoneme'))
+                df_alignment['start'] = df_alignment['start'].astype(float)
+                df_alignment['end'] = df_alignment['end'].astype(float)
+    return(df_alignment)
 
 def window_time_table(sound_file) : 
     #creates a dictionnary contraining the start time stamp and the end time stamp of 
@@ -63,8 +62,8 @@ def window_time_table(sound_file) :
     window_time.columns = ['start_frame', 'end_frame']
     return(window_time)
 
-def get_filterbank_chart(sound_file, alignement_file, path) :
-    #creates a chart based on MFCC coefficients given a sound file and an alignement_file
+def get_filterbank_chart(sound_file, alignment_file, path) :
+    #creates a chart based on MFCC coefficients given a sound file and an alignment_file
 
     df_fbank = pd.DataFrame(get_filter_bank(sound_file))
     feature_fbank_chart = df_fbank.to_csv (path, index = None, header=True)
@@ -80,12 +79,12 @@ def get_mfcc_chart(sound_file, path) :
     return(df_mfcc_feat)
 
 
-def combine_time_tables(sound_file, alignement_file, path):
+def combine_time_tables(sound_file, alignment_file, path):
     """"returns the synthesis of the real time table (phoneme, start time, end time) and the window time table
     (window index, start time, end time), table (phoneme, phoneme_start_time, phoneme_end_time, 
     window_index, wndow_start_time, window_end_time)"""
 
-    phoneme_time_table = real_time_table(alignement_file)
+    phoneme_time_table = parse_alignment_file(alignment_file)
     table = window_time_table(sound_file)
     # Set the index to match the start frame of each phoneme.
     phoneme_time_table.index = (phoneme_time_table['start'] // .01).astype(int)
@@ -99,10 +98,10 @@ def combine_time_tables(sound_file, alignement_file, path):
     return(table)
 
 
-def get_midpoints(sound_file, alignement_file):
+def get_midpoints(sound_file, alignment_file):
     """Gets the midpoint vector for each phoneme and comptues the distance matrix"""
 
-    phoneme_time_table = real_time_table(alignement_file)
+    phoneme_time_table = parse_alignment_file(alignment_file)
     filterbank = get_filter_bank(sound_file)
     # Get the index of the midpoint frame for each phoneme as a pd.Series.
     mid_index = (
@@ -112,10 +111,10 @@ def get_midpoints(sound_file, alignement_file):
     midpoints = pd.DataFrame(filterbank[mid_index], index=phoneme_time_table['phoneme'])
     return(midpoints)
 
-def distance_matrix(sound_file, alignement_file) :
+def distance_matrix(sound_file, alignment_file) :
     #Gets the distance matrix of distances between midpoint vectors for pairs of phonemes
     
-    midpoints = get_midpoints(sound_file, alignement_file)
+    midpoints = get_midpoints(sound_file, alignment_file)
     # Get the distance matrix
     distances = squareform(pdist(midpoints.values, metric ='euclidean'))
     distances = pd.DataFrame(distances, index=midpoints.index, columns=midpoints.index)
@@ -123,10 +122,38 @@ def distance_matrix(sound_file, alignement_file) :
     return(distances)
 
 
+def get_sound_files(path_sound_file):
+    sound_file_list = []
+    for file in os.listdir('C:\\Users\\alain\\Desktop\\Cogmaster\\Cogmaster_S2\\Stage\\python_speech_features-master') :
+        if file.endswith(".wav") :
+            sound_file_list = sound_file_list.append(file)
+    sound_file_df = pd.DataFrame(sound_file_list, columns=('file_name'))
+    print(sound_file_df)
+
+def analyze_corpus(path_sound_file, path_alignment_file):
+    """directory_sound_files = path_sound_file
+    directory_alignment_files = path_alignment_file
+    alignment = split_alignment_file(path_alignment_file)
+    sound_file_list = []
+
+    for sound_file in os.listdir(directory_sound_files) :
+        sound_file_list = sound_file_list.append(sound_file)
+
+    pairs = zip()
+    pairs_List = list(pairs)
+    pairs = zip(alignment, sound_file_list)"""
+
+    
+    for alignment_line, sound_file in pairs :
+            if sound_file.endswith(".wav") :
+                distances = distance_matrix(sound_file, alignment_line)
+
+
 if __name__ == '__main__':  
-    distance_matrix(sys.argv[1], sys.argv[2])
+    analyze_corpus(sys.argv[1], sys.argv[2])
 
 
 
 
 #get_filterbank_chart('animal.wav', 'toy_data_alignement.txt', 'C:\\Users\\alain\\Desktop\\Cogmaster\\Cogmaster_S2\\Stage\\feature_fbank_chart.csv')
+#'C:\\Users\\alain\\Desktop\\Cogmaster\\Cogmaster_S2\\Stage\\python_speech_features-master'
