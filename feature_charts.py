@@ -11,7 +11,6 @@ def get_filter_bank(sound_file) :
 
     (rate,sig) = wav.read(sound_file)
     fbank_feat = logfbank(sig,rate)
-
     return(fbank_feat)
 
 
@@ -20,14 +19,15 @@ def get_number_of_windows(sound_file) :
     #of the vector stocking the filter bank coefficients 
 
     nb_windows = np.size(get_filter_bank(sound_file), 0)
-
     return(nb_windows)
 
+
 def get_number_of_lines_in_file(alignement_file) : 
+    #Gets the number of lines in a alignement file
     with open(alignement_file) as file :
         for i, line in enumerate(file):
             pass
-    return i + 1
+    return(i + 1)
 
 
 def real_time_table(alignement_file) : 
@@ -40,7 +40,6 @@ def real_time_table(alignement_file) :
         )
         real_times['start'] = real_times['start'].astype(float)
         real_times['end'] = real_times['end'].astype(float)
-
     return(real_times)
 
 def window_time_table(sound_file) : 
@@ -66,11 +65,7 @@ def get_filterbank_chart(sound_file, alignement_file, path) :
     #creates a chart based on MFCC coefficients given a sound file and an alignement_file
 
     df_fbank = pd.DataFrame(get_filter_bank(sound_file))
-
     feature_fbank_chart = df_fbank.to_csv (path, index = None, header=True)
-    
-    print (df_fbank)
-
     return(df_fbank)
 
 def get_mfcc_chart(sound_file, path) : 
@@ -78,13 +73,8 @@ def get_mfcc_chart(sound_file, path) :
 
     (rate,sig) = wav.read(sound_file)
     mfcc_feat = mfcc(sig,rate)
-
     df_mfcc_feat = pd.DataFrame(mfcc_feat)
-    
-    print(df_mfcc_feat)
-    
     feature_mfcc_chart = df_mfcc_feat.to_csv (path, index = None, header=True)
-
     return(df_mfcc_feat)
 
 
@@ -92,7 +82,6 @@ def combine_time_tables(sound_file, alignement_file, path):
     """"returns the synthesis of the real time table (phoneme, start time, end time) and the window time table
     (window index, start time, end time), table (phoneme, phoneme_start_time, phoneme_end_time, 
     window_index, wndow_start_time, window_end_time)"""
-
 
     phoneme_time_table = real_time_table(alignement_file)
     table = window_time_table(sound_file)
@@ -104,10 +93,7 @@ def combine_time_tables(sound_file, alignement_file, path):
     table = table.join(phoneme_time_table).fillna(method='ffill')
     # Add filterbank coefficients as a single column.
     table['filterbank'] = get_filter_bank(sound_file).tolist()
-
     time_table_chart = table.to_csv (path, index = None, header=True)
-
-
     return(table)
 
 
@@ -122,14 +108,18 @@ def get_midpoints(sound_file, alignement_file):
     ).astype(int)
     # Get a pandas.Series of midpoints with phonemes as index.
     midpoints = pd.DataFrame(filterbank[mid_index], index=phoneme_time_table['phoneme'])
+    return(midpoints)
 
+def distance_matrix(sound_file, alignement_file) :
+    #Gets the distance matrix of distances between midpoint vectors for pairs of phonemes
+    
+    midpoints = get_midpoints(sound_file, alignement_file)
     # Get the distance matrix
     distances = squareform(pdist(midpoints.values, metric ='euclidean'))
     distances = pd.DataFrame(distances, index=midpoints.index, columns=midpoints.index)
-
     return(distances)
 
 
-print(get_midpoints("animal.wav", "toy_data_alignement.txt"))
+print(distance_matrix("animal.wav", "toy_data_alignement.txt"))
 
 #get_filterbank_chart('animal.wav', 'toy_data_alignement.txt', 'C:\\Users\\alain\\Desktop\\Cogmaster\\Cogmaster_S2\\Stage\\feature_fbank_chart.csv')
