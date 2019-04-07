@@ -62,18 +62,18 @@ def window_time_table(sound_file) :
     window_time.columns = ['start_frame', 'end_frame']
     return(window_time)
 
-def get_filterbank_chart(sound_file, alignement_file) :
+def get_filterbank_chart(sound_file, alignement_file, path) :
     #creates a chart based on MFCC coefficients given a sound file and an alignement_file
 
     df_fbank = pd.DataFrame(get_filter_bank(sound_file))
 
-    feature_fbank_chart = df_fbank.to_csv (r'C:\Users\alain\Desktop\Cogmaster\Cogmaster_S2\Stage\feature_fbank_chart.csv', index = None, header=True)
+    feature_fbank_chart = df_fbank.to_csv (path, index = None, header=True)
     
     print (df_fbank)
 
     return(df_fbank)
 
-def get_mfcc_chart(sound_file) : 
+def get_mfcc_chart(sound_file, path) : 
     #creates a chart based on the MFCC coefficients given a sound_file
 
     (rate,sig) = wav.read(sound_file)
@@ -83,12 +83,12 @@ def get_mfcc_chart(sound_file) :
     
     print(df_mfcc_feat)
     
-    feature_mfcc_chart = df_mfcc_feat.to_csv (r'C:\Users\alain\Desktop\Cogmaster\Cogmaster_S2\Stage\feature_MFCC_chart.csv', index = None, header=True)
+    feature_mfcc_chart = df_mfcc_feat.to_csv (path, index = None, header=True)
 
     return(df_mfcc_feat)
 
 
-def combine_time_tables(sound_file, alignement_file):
+def combine_time_tables(sound_file, alignement_file, path):
     """"returns the synthesis of the real time table (phoneme, start time, end time) and the window time table
     (window index, start time, end time), table (phoneme, phoneme_start_time, phoneme_end_time, 
     window_index, wndow_start_time, window_end_time)"""
@@ -105,7 +105,7 @@ def combine_time_tables(sound_file, alignement_file):
     # Add filterbank coefficients as a single column.
     table['filterbank'] = get_filter_bank(sound_file).tolist()
 
-    time_table_chart = table.to_csv (r'C:\Users\alain\Desktop\Cogmaster\Cogmaster_S2\Stage\time_table_chart.csv', index = None, header=True)
+    time_table_chart = table.to_csv (path, index = None, header=True)
 
 
     return(table)
@@ -131,3 +131,5 @@ def get_midpoints(sound_file, alignement_file):
 
 
 print(get_midpoints("animal.wav", "toy_data_alignement.txt"))
+
+#get_filterbank_chart('animal.wav', 'toy_data_alignement.txt', 'C:\\Users\\alain\\Desktop\\Cogmaster\\Cogmaster_S2\\Stage\\feature_fbank_chart.csv')
