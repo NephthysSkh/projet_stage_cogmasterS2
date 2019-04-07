@@ -36,12 +36,14 @@ def parse_alignment_file(path_alignment_file):
     #and the end time stamp. The entry is an aligmenent file in .txt. The key is the strat time
 
     for alignment_file in os.listdir(path_alignment_file):
-        if alignment_file.endswith('_phone.txt') :
+        if alignment_file.endswith('.txt') :
             with open(alignment_file, 'r') as file:
                 df_alignment = pd.DataFrame([line.split() for line in file], columns=('file_name', 'start', 'end', 'phoneme'))
                 df_alignment['start'] = df_alignment['start'].astype(float)
                 df_alignment['end'] = df_alignment['end'].astype(float)
-    return(df_alignment)
+                return(df_alignment)
+
+    return None
 
 def window_time_table(sound_file) : 
     #creates a dictionnary contraining the start time stamp and the end time stamp of 
@@ -79,29 +81,35 @@ def get_mfcc_chart(sound_file, path) :
     return(df_mfcc_feat)
 
 
-def combine_time_tables(sound_file, alignment_file, path):
+def combine_time_tables(sound_file, path_alignment_file):
     """"returns the synthesis of the real time table (phoneme, start time, end time) and the window time table
     (window index, start time, end time), table (phoneme, phoneme_start_time, phoneme_end_time, 
     window_index, wndow_start_time, window_end_time)"""
 
-    phoneme_time_table = parse_alignment_file(alignment_file)
+    phoneme_time_table = parse_alignment_file(path_alignment_file)
     table = window_time_table(sound_file)
     # Set the index to match the start frame of each phoneme.
     phoneme_time_table.index = (phoneme_time_table['start'] // .01).astype(int)
-    # Drop phones that last less than the span of one frame.
+    # Drop phones that last less than the span of a frame.
     phoneme_time_table = phoneme_time_table.iloc[np.where(~phoneme_time_table.index.duplicated(keep='last'))]
-    # Join both tables. 
+    # Join both tables.
+
+    for index, row in phoneme_time_table.iterrows() :
+        if sound_file != row['file_name'] :
+            phoneme_time_table.drop(index)
+
     table = table.join(phoneme_time_table).fillna(method='ffill')
     # Add filterbank coefficients as a single column.
     table['filterbank'] = get_filter_bank(sound_file).tolist()
-    time_table_chart = table.to_csv (path, index = None, header=True)
+
+    #time_table_chart = table.to_csv (path, index = None, header=True)
     return(table)
 
 
-def get_midpoints(sound_file, alignment_file):
+def get_midpoints(sound_file, path_alignment_file):
     """Gets the midpoint vector for each phoneme and comptues the distance matrix"""
 
-    phoneme_time_table = parse_alignment_file(alignment_file)
+    phoneme_time_table = parse_alignment_file(path_alignment_file)
     filterbank = get_filter_bank(sound_file)
     # Get the index of the midpoint frame for each phoneme as a pd.Series.
     mid_index = (
@@ -111,10 +119,10 @@ def get_midpoints(sound_file, alignment_file):
     midpoints = pd.DataFrame(filterbank[mid_index], index=phoneme_time_table['phoneme'])
     return(midpoints)
 
-def distance_matrix(sound_file, alignment_file) :
+def distance_matrix(sound_file, path_alignment_file) :
     #Gets the distance matrix of distances between midpoint vectors for pairs of phonemes
     
-    midpoints = get_midpoints(sound_file, alignment_file)
+    midpoints = get_midpoints(sound_file, path_alignment_file)
     # Get the distance matrix
     distances = squareform(pdist(midpoints.values, metric ='euclidean'))
     distances = pd.DataFrame(distances, index=midpoints.index, columns=midpoints.index)
@@ -122,36 +130,15 @@ def distance_matrix(sound_file, alignment_file) :
     return(distances)
 
 
-def get_sound_files(path_sound_file):
-    sound_file_list = []
-    for file in os.listdir('C:\\Users\\alain\\Desktop\\Cogmaster\\Cogmaster_S2\\Stage\\python_speech_features-master') :
-        if file.endswith(".wav") :
-            sound_file_list = sound_file_list.append(file)
-    sound_file_df = pd.DataFrame(sound_file_list, columns=('file_name'))
-    print(sound_file_df)
-
-def analyze_corpus(path_sound_file, path_alignment_file):
-    """directory_sound_files = path_sound_file
-    directory_alignment_files = path_alignment_file
-    alignment = split_alignment_file(path_alignment_file)
-    sound_file_list = []
-
-    for sound_file in os.listdir(directory_sound_files) :
-        sound_file_list = sound_file_list.append(sound_file)
-
-    pairs = zip()
-    pairs_List = list(pairs)
-    pairs = zip(alignment, sound_file_list)"""
-
-    
-    for alignment_line, sound_file in pairs :
-            if sound_file.endswith(".wav") :
-                distances = distance_matrix(sound_file, alignment_line)
+#for sound_file in os.listdir(path_sound_file):
+#    if sound_file.endswith('.wav') :
+#        distance_matrix(sound_file, path_alignment_file)
 
 
 if __name__ == '__main__':  
-    analyze_corpus(sys.argv[1], sys.argv[2])
-
+    combine_time_tables('animal.wav', 'C:\\Users\\alain\\Desktop\\Cogmaster\\Cogmaster_S2\\Stage\\python_speech_features-master')
+    distance_matrix('animal.wav', 'C:\\Users\\alain\\Desktop\\Cogmaster\\Cogmaster_S2\\Stage\\python_speech_features-master')
+    # analyze_corpus(sys.argv[1], sys.argv[2])
 
 
 
