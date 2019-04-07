@@ -2,6 +2,8 @@ from scipy.spatial.distance import pdist, squareform
 import scipy.io.wavfile as wav
 import numpy as np
 import pandas as pd
+import sys
+import os
 from python_speech_features import mfcc
 from python_speech_features import logfbank
 
@@ -117,9 +119,14 @@ def distance_matrix(sound_file, alignement_file) :
     # Get the distance matrix
     distances = squareform(pdist(midpoints.values, metric ='euclidean'))
     distances = pd.DataFrame(distances, index=midpoints.index, columns=midpoints.index)
+    print(distances)
     return(distances)
 
 
-print(distance_matrix("animal.wav", "toy_data_alignement.txt"))
+if __name__ == '__main__':  
+    distance_matrix(sys.argv[1], sys.argv[2])
+
+
+
 
 #get_filterbank_chart('animal.wav', 'toy_data_alignement.txt', 'C:\\Users\\alain\\Desktop\\Cogmaster\\Cogmaster_S2\\Stage\\feature_fbank_chart.csv')
