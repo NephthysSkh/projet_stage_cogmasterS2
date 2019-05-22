@@ -49,6 +49,15 @@ def load_corpus(alignment_file_path, wav_folder_path, save_path=None) :
     return(dictionnary)
 
 def normalization_speaker(dataframe, save_path=None) :
+    """normalizes speaker filterbanks
+
+        :param dataframe : feature dataframe for a given speaker (=sound file)
+        :param save_path : path to which the normalized df is saved
+        :type amount dataframe : panda df
+        :type amount save_path : string
+        :returns: normalized filterbank coefficients
+        :rtype: dataframe """
+
     cols = [
         name for name in dataframe.columns
         if name.startswith('filterbank')]
@@ -60,9 +69,9 @@ def normalization_speaker(dataframe, save_path=None) :
     df_std = pd.DataFrame(std_filterbanks)
 
     for i in range(25):
-        dataframe['filterbank_'+str(i)] = (dataframe['filterbank_'+str(i)] - df_mean)/df_std
+        dataframe['filterbank_'+str(i)] = (DataFrame['filterbank_'+str(i)] - float(df_mean.loc['filterbank_'+str(i)]) / float(df_std.loc['filterbank_'+str(i)]))
 
-    if isinstance(save_path, str):
+    if isinstance(save_path, str) :
         dataframe = dataframe.to_csv(save_path, index = None, header=True)
 
     return dataframe
