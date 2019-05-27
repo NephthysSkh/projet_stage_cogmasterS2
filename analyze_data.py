@@ -2,61 +2,19 @@ import sys
 import os
 import numpy as np
 import pandas as pd
-
+from scipy.spatial.distance import pdist, squareform
 from feature_charts import *
 
-class Analyzer:
-    #loads the dataset and comptues the corresponding feature chart
-    # reecrire avec os.walk
-
-    def __init__(self, alignment_file_path, wav_folder_path):
-        self.alignments = parse_alignment_file(alignment_file_path)
-        with open(wav_folder_path) :
-            self.sound_list = [name for name in self.alignments['file_name'].unique()\
-            if os.path.isfile(os.path.join(self.wav_folder, name + '.wav'))]
-        self.alignments = self.alignments[
-        self.alignments['file_name'].isin(self.sound_list)].copy()
-
-    def get_data(self, sound_file_name):
-    #gets the feature chart for a given sound file
-
-    #    :param sound_file : name of a sound file
-    #    :type amount: string
-    #    :returns: the output of the combine_time_table function for a given sound file
-    #    :rtype: dataframe
-
-        if sound_file_name not in self.sound_list:
-            raise KeyError("No alignment data for key '%s'." % sound_file_name)
-        path = os.path.join(self.wav_folder, sound_file_name + '.wav')
-        return combine_time_tables(path, self.alignments)
-
-
-def load_corpus(alignment_file_path, wav_folder_path, save_path=None) :
-    """loads the corpus 
-
-        :param sound_file : name of a sound file
-        :param alignment_file_path : path of the corresponding alignement file
-        :type amount sound_file : string
-        :type amount alignement_file_path : string
-        :returns: the output of get_data function for the sound files in a given folder
-        :rtype: dataframes """
-
-    Analyzer(alignment_file_path, wav_folder_path)
-    dictionnary = {}
-    for name in Analyzer.sound_list :
-        dictionnary[name] = Analyzer.get_data(name)
-
-    return(dictionnary)
 
 def normalization_speaker(dataframe, save_path=None) :
-    """normalizes speaker filterbanks
+    # normalizes speaker filterbanks
 
-        :param dataframe : feature dataframe for a given speaker (=sound file)
-        :param save_path : path to which the normalized df is saved
-        :type amount dataframe : panda df
-        :type amount save_path : string
-        :returns: normalized filterbank coefficients
-        :rtype: dataframe """
+    #     :param dataframe : feature dataframe for a given speaker (=sound file)
+    #     :param save_path : path to which the normalized df is saved
+    #     :type amount dataframe : panda df
+    #     :type amount save_path : string
+    #     :returns: normalized filterbank coefficients
+    #     :rtype: dataframe
 
     cols = [
         name for name in dataframe.columns
@@ -77,38 +35,83 @@ def normalization_speaker(dataframe, save_path=None) :
     return dataframe
 
 
-def phone_mean_fbank(dataframe) :
-    """computes the mean of the filterbank coefficents by phonemes
+def phone_mean_fbank(dataframe, save_path=None) :
+    # computes the mean of the filterbank coefficents by phonemes
 
-        :param dataframe : the table of frames outputed by the combine-time-table function (V1)
-        :type amount: dataframe
-        :returns: a dataframe with the following columns : "phoneme", "F0", ... "F26" with "F0"... "F26" the mean filterbank coefficients
-        :rtype: dataframe"""
+    #     :param dataframe : the table of frames outputed by the combine-time-table function (V1)
+    #     :type amount: dataframe
+    #     :returns: a dataframe with the following columns : "phoneme", "F0", ... "F26" with "F0"... "F26" the mean filterbank coefficients
+    #     :rtype: dataframe
 
     cols = [
         name for name in dataframe.columns
         if name.startswith('filterbank') or name == 'phoneme'
         ]
 
-    return dataframe[cols].groupby('phoneme').mean()
+    mean_dataframe = dataframe[cols].groupby('phoneme').mean()
+
+    if isinstance(save_path, str) :
+        mean_dataframe = mean_dataframe.to_csv(save_path, index = None, header=True)
+    
+    return mean_dataframe
+
+
+def Analyze_data(wav_folder_path, alignment_file_path, save_path_data, save_path_norm_data, save_path_mean) :
+    #     :param wav_folder_path : path of the folder containing the sound files to analyze
+    #     :param alignment_file_path : path of of access to the alignment file
+    #     :param save_path_align : path to which the alignment dataframe is saved in csv
+    #     :param save_path_df : path to which the combine_time_table dataframe is savec in csv
+    #     :type amount wav_folder_path : string
+    #     :type amount alignment_file_path : string
+    #     :type amount save_path_align : string
+    #     :type amount save_path_df : string
+    #     :returns: normalized output of the combine_time_table function
+    #     :rtype: dataframe
+
+    alignment = parse_alignment_file(alignment_file_path)
+    #sound_file_list = [wav_folder_path + '\\' + f for f in os.listdir(wav_folder_path) if f.endswith('.wav')]
+    sound_file_list = [f for f in os.listdir(wav_folder_path) if f.endswith('.wav')]
+    alignment = alignment[alignment['file_name'].isin(sound_file_list).copy()]
+
+    for sound_file in sound_file_list :
+        dataframe = combine_time_tables(sound_file, alignment, save_path_data)
+        save_data = dataframe.to_csv(save_path_data, index = None, header=True)
+        normalized_dataframe = normalization_speaker(dataframe, save_path_norm_data)
+        mean_phoneme_per_speaker = phone_mean_fbank(normalized_dataframe, save_path_mean)
+        return(mean_phoneme_per_speaker)
 
 
 
-# if __name__ == '__main__':  
-#     import sys
-#     import os
+def compute_distances_comparaison(wav_folder_path_1, wav_folder_path_2, alignment_file_path, save_path_norm_data_1, save_path_norm_data_2, save_path_mean_1, save_path_mean_2, save_path_distance_matrix):
 
-#     import scipy.io.wavfile as wav
-#     import numpy as np
-#     import pandas as pd
-#     from python_speech_features import mfcc
-#     from python_speech_features import logfbank
-#     from scipy.spatial.distance import pdist, squareform
+    data_corpus_1 = Analyze_data(wav_folder_path_1, alignment_file_path, save_path_norm_data_1, save_path_mean_1)
+    data_corpus_2 = Analyze_data(wav_folder_path_2, alignment_file_path, save_path_norm_data_2, save_path_mean_2)
 
-"""Analyzer('c:\\users\\alain\\desktop\\cogmaster\\cogmaster_s2\\stage\\distances_features\\toy_data_alignment.txt', 'c:\\users\\alain\\desktop\\cogmaster\\cogmaster_s2\\stage')
-Analyzer.get_data('animal.wav')"""
+    # Get the index of the midpoint frame for each phoneme as a pd.Series.
+    mid_index = (
+        (data_corpus_1['start'] // .01) + (.5 * (data_corpus_1['end'] - data_corpus_1['start']) // .01)
+    ).astype(int)
+    # Get a pandas.Series of midpoints with phonemes as index.
+    midpoints_1 = pd.DataFrame( , index=data_corpus_1['phoneme'])
 
-parse_alignment_file('c:\\users\\alain\\desktop\\cogmaster\\cogmaster_s2\\stage\\distances_features\\toy_data_alignement.txt')
+    mid_index = (
+        (data_corpus_2['start'] // .01) + (.5 * (data_corpus_2['end'] - data_corpus_2['start']) // .01)
+    ).astype(int)
+    midpoints_2 = pd.DataFrame( , index=data_corpus_2['phoneme'])
+
+
+    distance_matrix = squareform(cdist(midpoints_1.values, midpoints_2.values, metric ='euclidean'))
+    distance_matrix = pd.DataFrame(distances, index=midpoints_1.index, columns=midpoints_2.index)
+    return(distance_matrix)
+
+
+
+Analyze_data('c:\\users\\alain\\desktop\\cogmaster\\cogmaster_s2\\stage\\distances_features', 'c:\\users\\alain\\desktop\\cogmaster\\cogmaster_s2\\stage\\distances_features\\toy_data_alignement.txt', 'c:\\users\\alain\\desktop\\cogmaster\\cogmaster_s2\\stage\\distances_features', 'c:\\users\\alain\\desktop\\cogmaster\\cogmaster_s2\\stage\\distances_features', 'c:\\users\\alain\\desktop\\cogmaster\\cogmaster_s2\\stage\\distances_features')
+
+
+#alignment path : 'c:\\users\\alain\\desktop\\cogmaster\\cogmaster_s2\\stage\\distances_features\\toy_data_alignment.txt'
+# sound folder path : 'c:\\users\\alain\\desktop\\cogmaster\\cogmaster_s2\\stage')
+
 
  #(V1)
 # 0) charger les données du corpus anglais et corpus français, sauvegarder les données
