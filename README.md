@@ -12,7 +12,6 @@ Distances between phonemes are computed based on the distance between filterbank
 1) I used the python_speech_features package to compute the filterbank vectors. It needs to be downloaded before hand in order for the script to work. In signal processing, a filter bank is an array of band-pass filters that separates the input signal into multiple components, each one carrying a single frequency sub-band of the original signal. A bank of receivers can be created by performing a sequence of FFTs on overlapping segments of the input data stream. A weighting function (in this case the Hamming window function) is applied to each segment to control the shape of the frequency responses of the filters. The wider the shape, the more often the FFTs have to be done to satisfy the Nyquist sampling criteria.
 
 def get_filter_bank(sound_file) :
-    # computes the filter bank coefficients of a sound file
 
     #     :param sound_file : sound file in format .wav
     #     :type amount: .wav file
@@ -25,11 +24,9 @@ def get_filter_bank(sound_file) :
     fbank_feat.columns = ['filterbank_%s' % i for i in range(26)]
     return(fbank_feat)
 
-2) This function allows us to retrive the alignment file and store it in a dataframe.
+2) This function allows us to retrive the alignment file and store it in a dataframe. In this case, the alignment file is a single .txt file containing the alignment data for all .wav sound files considered. The parse_alignment_file_function outputs a dataframe contraining for each phoneme its label, the name of the sound file, the start time stamp and the end time stamp whose key is the start time
 
 def parse_alignment_file(path_alignment_file):
-    # creates a dataframe contraining for each phoneme its label, the file, the start time stamp
-    # and the end time stamp. The entry is an aligmenent file in .txt. The key is the start time
             
     #     :param path_alignment_file : a path to the alignment file
     #     :type amount: path
@@ -47,8 +44,6 @@ def parse_alignment_file(path_alignment_file):
 3) Both functions allows us to combined the alignement information for each phoneme with the associated filterbank coefficients per frame. This information is stored in a dataframe with the following columns "phoneme", "phoneme start time", "phoneme end time",  "frame_index", "frame_start_time", "frame_end_time", "F0"..."F26" with "F0"... "F26" the filterbank coefficients, and each line corresponding to a frame. This table is used later on to determine the midpoint filterbank vector for each phoneme and the distances between phoneme realizations interspeaker-wise.
 
 def frame_time_table(nb_frames) : 
-    # creates a dataframe contraining the start time stamp and the end time stamp of 
-    # each frame given a number of frames.
 
     #     :param nb_frames : a number of frames
     #     :type amount: int
@@ -60,7 +55,6 @@ def frame_time_table(nb_frames) :
     return frame_time
 
 def combine_time_tables(sound_file, alignment, save_path=None):
-    # combines the alignment file phoneme information with the filterbanks coefficients for a given sound file
 
     #  (phoneme, start time, end time) and the frame time table
     # (frame index, start time, end time), table (phoneme, phoneme_start_time, phoneme_end_time, 
@@ -124,7 +118,6 @@ def normalization_speaker(dataframe, save_path=None) :
 
     return dataframe
 
-
 def phone_mean_fbank(dataframe, save_path=None) :
     # computes the mean of the filterbank coefficents by phonemes
 
@@ -146,18 +139,8 @@ def phone_mean_fbank(dataframe, save_path=None) :
     return mean_dataframe
 
 
-6) 
+5) 
 def Analyze_data(wav_folder_path, alignment_file_path, save_path_data, save_path_norm_data, save_path_mean) :
-    #     :param wav_folder_path : path of the folder containing the sound files to analyze
-    #     :param alignment_file_path : path of of access to the alignment file
-    #     :param save_path_align : path to which the alignment dataframe is saved in csv
-    #     :param save_path_df : path to which the combine_time_table dataframe is savec in csv
-    #     :type amount wav_folder_path : string
-    #     :type amount alignment_file_path : string
-    #     :type amount save_path_align : string
-    #     :type amount save_path_df : string
-    #     :returns: normalized output of the combine_time_table function
-    #     :rtype: dataframe
 
     alignment = parse_alignment_file(alignment_file_path)
     #sound_file_list = [wav_folder_path + '\\' + f for f in os.listdir(wav_folder_path) if f.endswith('.wav')]
