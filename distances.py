@@ -22,7 +22,8 @@ def get_midpoints(sound_file, alignment):
     # Check that the targetted indices exist - trim some off if necessary.
     mid_index = mid_index[mid_index.isin(filterbank.index)]
     # Get a pandas.Series of midpoints with phonemes as index.
-    midpoints = pd.DataFrame(filterbank.loc[mid_index], index=alignment['phoneme'])
+    midpoints = filterbank.loc[mid_index]
+    midpoints.index = alignment['phoneme']
     return(midpoints)
 
 def distance_matrix_pairwise(sound_file, path_alignment_file) :
@@ -34,7 +35,7 @@ def distance_matrix_pairwise(sound_file, path_alignment_file) :
     #     :type amount path_alignment_file : path
     #     :returns: the pairwise distance matrix between within speaker
     #     :rtype: a dataframe
-    
+
     midpoints = get_midpoints(sound_file, path_alignment_file)
     # Get the distance matrix
     distances = squareform(pdist(midpoints.values, metric ='euclidean'))
@@ -51,7 +52,7 @@ def distance_matrix_interspeaker(sound_file_1, sound_file_2, path_alignment_file
     #     :type amount path_alignment_file : path
     #     :returns: the interspeaker phonemes distance matrix
     #     :rtype: a dataframe
-    
+
     midpoints_1 = get_midpoints(sound_file_1, path_alignment_file)
     midpoints_2 = get_midpoints(sound_file_2, path_alignment_file)
     # Get the distance matrix

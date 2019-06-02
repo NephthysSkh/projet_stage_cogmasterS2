@@ -121,49 +121,56 @@ def distance_mean_realization_per_speaker(wav_folder_path_1, wav_folder_path_2, 
     return(distance_matrix)
 
 
-def compute_distances_matrix(wav_folder_path_1, wav_folder_path_2, path_alignment_file, save_path_data_1, save_path_data_2, save_path_norm_data_1, save_path_norm_data_2, save_path_distance_matrix):
+def compute_distances_matrix(wav_folder_path_1, wav_folder_path_2, path_alignment_file, save_path_norm_data_1, save_path_norm_data_2, save_path_distance_matrix):
 
     alignment = parse_alignment_file(path_alignment_file)
     #sound_file_list = [wav_folder_path + '\\' + f for f in os.listdir(wav_folder_path) if f.endswith('.wav')]
     sound_file_list_1 = [
-        os.path.join(wav_folder_path_1, f)
-        for f in os.listdir(wav_folder_path_1)
-        if f.endswith('.wav')
+        f for f in os.listdir(wav_folder_path_1) if f.endswith('.wav')
     ]
     alignment_file_list = alignment['file_name'].unique().tolist()
     file_list_1 = set(alignment_file_list).intersection(sound_file_list_1)
 
     sound_file_list_2 = [
-        os.path.join(wav_folder_path_2, f)
-        for f in os.listdir(wav_folder_path_2)
-        if f.endswith('.wav')
+        f for f in os.listdir(wav_folder_path_2) if f.endswith('.wav')
     ]
     file_list_2 = set(alignment_file_list).intersection(sound_file_list_2)
 
     if os.path.isfile(save_path_norm_data_1):
         os.remove(save_path_norm_data_1)
 
-    for i, sound_file_1 in enumerate(sound_file_list_1):
-        midpoints_1 = get_midpoints(sound_file_1, alignment)
-        data_1 = normalization_speaker(midpoints_1)
-        data_1.to_csv(save_path_norm_data_1, mode='a', header=(i == 0), index=False)
+    for i, sound_file in enumerate(file_list_1):
+        midpoints = get_midpoints(
+            os.path.join(wav_folder_path_1, sound_file),
+            alignment[alignment['file_name'] == sound_file]
+        )
+        data = normalization_speaker(midpoints)
+        data.to_csv(
+            save_path_norm_data_1, mode='a', header=(i == 0), index=False
+        )
 
     if os.path.isfile(save_path_norm_data_2):
         os.remove(save_path_norm_data_2)
 
-    for i, sound_file_2 in enumerate(sound_file_list_2):
-        midpoints_2 = get_midpoints(sound_file_2, alignment)
-        data_2 = normalization_speaker(midpoints_2)
-        data_2.to_csv(save_path_norm_data_2, mode='a', header=(i == 0), index=False)
+    for i, sound_file in enumerate(file_list_2):
+        midpoints = get_midpoints(
+            os.path.join(wav_folder_path_2, sound_file),
+            alignment[alignment['file_name'] == sound_file]
+        )
+        data = normalization_speaker(midpoints)
+        data.to_csv(
+            save_path_norm_data_2, mode='a', header=(i == 0), index=False
+        )
 
     df_1 = pd.read_csv(save_path_norm_data_1)
     df_2 = pd.read_csv(save_path_norm_data_2)
-    
+
     distance_matrix = cdist(df_1.values, df_2.values, metric ='euclidean')
     distance_matrix = pd.DataFrame(distance_matrix, index=df_1.index, columns=df_2.index)
     distance_matrix.to_csv(save_path_distance_matrix, index = None, header=True)
 
-    #(ggplot(distance_matrix, aes('French', 'English', fill=' ')) + geom_tile(aes(width=.95, height=.95)), size=10)
+    plot = ggplot(distance_matrix, aes('French', 'English', fill=' ')) + geom_tile(aes(width=.95, height=.95))
+    #save_as_pdf_pages(plot)
 
     return(distance_matrix)
 
@@ -179,10 +186,6 @@ if __name__ == '__main__' :
                         help='path to wav folder containing the data of corpus 2')
     parser.add_argument('path_alignment_file', metavar='alignment_file', type=str,
                         help='path to the alignment file')
-    parser.add_argument('save_path_data_1', metavar='save_data_1', type=str,
-                        help='path to csv file where feature chart of corpus 1 is saved')
-    parser.add_argument('save_path_data_2', metavar='save_data_2', type=str,
-                        help='path to csv file where feature chart of corpus 2 is saved')
     parser.add_argument('save_path_norm_data_1', metavar='save_norm_1', type=str,
                         help='path to csv file where normalized feature chart of corpus 1 is saved')
     parser.add_argument('save_path_norm_data_2', metavar='save_norm_2', type=str,
@@ -196,13 +199,9 @@ if __name__ == '__main__' :
 
     args = parser.parse_args()
 
-    compute_distances_matrix(args.wav_folder_path_1, args.wav_folder_path_2, args.path_alignment_file, args.save_path_data_1, args.save_path_data_2, args.save_path_norm_data_1, args.save_path_norm_data_2, args.save_path_distance_matrix)
+    compute_distances_matrix(args.wav_folder_path_1, args.wav_folder_path_2, args.path_alignment_file, args.save_path_norm_data_1, args.save_path_norm_data_2, args.save_path_distance_matrix)
     #calculate_mean_per_speaker(args.wav_folder_path_1, args.wav_folder_path_2, args.path_alignment_file, args.save_path_data_1, args.save_path_data_2, args.save_path_norm_data_1, args.save_path_norm_data_2, args.save_path_mean_1, args.save_path_mean_2, args.save_path_distance_matrix)
 
 
     #means_per_speaker = calculate_mean_per_speaker('toy_data', 'toy_data/toy_data_alignment.txt', 'features_data_1.csv', 'norm_data_1.csv', 'mean_data_1.csv')
     #dist = compute_distances_matrix('toy_data', 'toy_data', 'toy_data/toy_data_alignment.txt', 'feature_chart_1.csv', 'feature_chart_2.csv', 'norm_data_1.csv', 'norm_data_2.csv', 'mean_data_1.csv', 'mean_data_2.csv', 'dist_matrix.csv')
-
-
-
-
