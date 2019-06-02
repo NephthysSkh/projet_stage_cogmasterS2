@@ -1,10 +1,10 @@
 import numpy as np
 import pandas as pd
-from scipy.spatial.distance import pdist, squareform
+from scipy.spatial.distance import pdist, cdist, squareform
 
 from feature_charts import *
 
-def get_midpoints(sound_file, path_alignment_file):
+def get_midpoints(sound_file, alignment):
     # Gets the midpoint vector for each phoneme
 
     #     :param sound_file : a sound file in format .wav
@@ -14,14 +14,15 @@ def get_midpoints(sound_file, path_alignment_file):
     #     :returns: a dataframe with the following columns : "phoneme", "start", "end"
     #     :rtype: a dataframe
 
-    phoneme_time_table = parse_alignment_file(path_alignment_file)
     filterbank = get_filter_bank(sound_file)
     # Get the index of the midpoint frame for each phoneme as a pd.Series.
     mid_index = (
-        (phoneme_time_table['start'] // .01) + (.5 * (phoneme_time_table['end'] - phoneme_time_table['start']) // .01)
+        (alignment['start'] // .01) + (.5 * (alignment['end'] - alignment['start']) // .01)
     ).astype(int)
+    # Check that the targetted indices exist - trim some off if necessary.
+    mid_index = mid_index[mid_index.isin(filterbank.index)]
     # Get a pandas.Series of midpoints with phonemes as index.
-    midpoints = pd.DataFrame(filterbank[mid_index], index=phoneme_time_table['phoneme'])
+    midpoints = pd.DataFrame(filterbank.loc[mid_index], index=alignment['phoneme'])
     return(midpoints)
 
 def distance_matrix_pairwise(sound_file, path_alignment_file) :

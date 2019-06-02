@@ -36,23 +36,6 @@ def get_number_of_frames(sound_file) :
     nb_frames = np.size(get_filter_bank(sound_file), 0)
     return(nb_frames)
 
-def parse_alignment_file(path_alignment_file):
-    # creates a dataframe contraining for each phoneme its label, the file, the start time stamp
-    # and the end time stamp. The entry is an aligmenent file in .txt. The key is the start time
-            
-    #     :param path_alignment_file : a path to the alignment file
-    #     :type amount: path
-    #     :returns: a dataframe with the following columns : "file name", "start", "end", "phoneme"
-    #     :rtype: a dataframe
-
-
-    #assert os.path.isfile(path_alignment_file) and path_alignment_file.endswith('.txt')
-    with open(path_alignment_file, 'r') as file:
-        df_alignment = pd.DataFrame([line.split() for line in file], columns=('file_name', 'start', 'end', 'phoneme'))
-        df_alignment['start'] = df_alignment['start'].astype(float)
-        df_alignment['end'] = df_alignment['end'].astype(float)
-        return df_alignment
-
 def frame_time_table(nb_frames) : 
     # creates a dataframe contraining the start time stamp and the end time stamp of 
     # each frame given a number of frames.
@@ -66,7 +49,7 @@ def frame_time_table(nb_frames) :
     frame_time = pd.DataFrame({'start_frame': start, 'end_frame': start + 0.025})
     return frame_time
 
-def combine_time_tables(sound_file, alignment, save_path=None):
+def combine_time_tables(sound_file, phoneme_time_table):
     # combines the alignment file phoneme information with the filterbanks coefficients for a given sound file
 
     #  (phoneme, start time, end time) and the frame time table
@@ -88,18 +71,15 @@ def combine_time_tables(sound_file, alignment, save_path=None):
     fbank = get_filter_bank(sound_file)
     frame_table = frame_time_table(len(fbank))
     # Set the index to match the start frame of each phoneme.
-    phoneme_time_table = parse_alignment_file(alignment)
     phoneme_time_table.index = (phoneme_time_table['start'] // .01).astype(int)
     # Drop phones that last less than the span of a frame.
     phoneme_time_table = phoneme_time_table.iloc[np.where(~phoneme_time_table.index.duplicated(keep='last'))]
     # Join both tables.
-    phoneme_time_table = phoneme_time_table[phoneme_time_table['file_name'] == sound_file]
     frame_table = frame_table.join(phoneme_time_table).fillna(method='ffill')
     # Add filterbank coefficients as a single column.
     table = pd.concat([frame_table, fbank], axis=1)
-    if isinstance(save_path, str):
-        table = table.to_csv(save_path, index = None, header=True)
     return(table)
 
 
-combine_time_tables('animal.wav', 'c:\\users\\alain\\desktop\\cogmaster\\cogmaster_s2\\stage\\distances_features\\toy_data_alignement.txt', 'c:\\users\\alain\\desktop\\cogmaster\\cogmaster_s2\\stage\\distances_features')
+#if __name__ == "__main__":
+    #combine_time_tables('animal.wav', 'c:\\users\\alain\\desktop\\cogmaster\\cogmaster_s2\\stage\\distances_features\\toy_data_alignement.txt', 'c:\\users\\alain\\desktop\\cogmaster\\cogmaster_s2\\stage\\distances_features')
