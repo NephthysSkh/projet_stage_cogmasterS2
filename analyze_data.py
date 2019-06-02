@@ -32,7 +32,7 @@ def normalization_speaker(dataframe) :
     for i in range(25):
         dataframe['filterbank_'+str(i)] = (dataframe['filterbank_'+str(i)] - float(df_mean.loc['filterbank_'+str(i)]) / float(df_std.loc['filterbank_'+str(i)]))
 
-    return dataframe
+    return(dataframe)
 
 
 def phone_mean_feature(dataframe) :
@@ -115,7 +115,7 @@ def distance_mean_realization_per_speaker(wav_folder_path_1, wav_folder_path_2, 
     data_corpus_1 = calculate_mean_per_speaker(wav_folder_path_1, alignment_file_path, save_path_data_1, save_path_norm_data_1, save_path_mean_1)
     data_corpus_2 = calculate_mean_per_speaker(wav_folder_path_2, alignment_file_path, save_path_data_2, save_path_norm_data_2, save_path_mean_2)
 
-    distance_matrix = squareform(cdist(data_corpus_1.values, data_corpus_2.values, metric ='euclidean'))
+    distance_matrix = cdist(data_corpus_1.values, data_corpus_2.values, metric ='euclidean')
     distance_matrix = pd.DataFrame(distance_matrix, index=data_corpus_1.index, columns=data_corpus_2.index)
     distance_matrix.to_csv(save_path_distance_matrix, index = None, header=True)
     return(distance_matrix)
@@ -169,8 +169,8 @@ def compute_distances_matrix(wav_folder_path_1, wav_folder_path_2, path_alignmen
     distance_matrix = pd.DataFrame(distance_matrix, index=df_1.index, columns=df_2.index)
     distance_matrix.to_csv(save_path_distance_matrix, index = None, header=True)
 
-    plot = ggplot(distance_matrix, aes('French', 'English', fill=' ')) + geom_tile(aes(width=.95, height=.95))
-    #save_as_pdf_pages(plot)
+    #p = ggplot(distance_matrix, aes(x=distance_matrix.columns, y=distance_matrix.index)) + geom_tile(aes(width=.95, height=.95))
+    #p.save(filename = 'distance_matrix.png', height=5, width=5, units = 'in', dpi=1000)
 
     return(distance_matrix)
 
