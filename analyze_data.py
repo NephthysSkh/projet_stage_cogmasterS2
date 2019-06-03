@@ -1,12 +1,15 @@
 import sys
 import os
 import csv
+
+from scipy.spatial.distance import cdist, squareform
 import numpy as np
 import pandas as pd
-from scipy.spatial.distance import cdist, squareform
+import matplotlib.pyplot as plt
+import seaborn as sns
+
 from feature_charts import *
 from distances import *
-from plotnine import *
 
 
 def normalization_speaker(dataframe) :
@@ -146,7 +149,7 @@ def compute_distances_matrix(wav_folder_path_1, wav_folder_path_2, path_alignmen
         )
         data = normalization_speaker(midpoints)
         data.to_csv(
-            save_path_norm_data_1, mode='a', header=(i == 0), index=False
+            save_path_norm_data_1, mode='a', header=(i == 0)
         )
 
     if os.path.isfile(save_path_norm_data_2):
@@ -159,18 +162,27 @@ def compute_distances_matrix(wav_folder_path_1, wav_folder_path_2, path_alignmen
         )
         data = normalization_speaker(midpoints)
         data.to_csv(
-            save_path_norm_data_2, mode='a', header=(i == 0), index=False
+            save_path_norm_data_2, mode='a', header=(i == 0)
         )
 
-    df_1 = pd.read_csv(save_path_norm_data_1)
-    df_2 = pd.read_csv(save_path_norm_data_2)
+    df_1 = pd.read_csv(save_path_norm_data_1, index_col=0)
+    df_2 = pd.read_csv(save_path_norm_data_2, index_col=0)
 
     distance_matrix = cdist(df_1.values, df_2.values, metric ='euclidean')
-    distance_matrix = pd.DataFrame(distance_matrix, index=df_1.index, columns=df_2.index)
-    distance_matrix.to_csv(save_path_distance_matrix, index = None, header=True)
+    distance_matrix = pd.DataFrame(
+        distance_matrix, index=df_1.index, columns=df_2.index
+    )
+    distance_matrix.to_csv(save_path_distance_matrix, header=True)
+    #print(distance_matrix)
 
-    #p = ggplot(distance_matrix, aes(x=distance_matrix.columns, y=distance_matrix.index)) + geom_tile(aes(width=.95, height=.95))
-    #p.save(filename = 'distance_matrix.png', height=5, width=5, units = 'in', dpi=1000)
+    #mean_distance_matrix = distance_matrix.groupby('phoneme').mean()
+
+    #print(mean_distance_matrix)
+
+    plt.figure()
+    sns.heatmap(distance_matrix, cmap='Blues')
+    plt.savefig('distance_matrix.pdf')
+    plt.show()
 
     return(distance_matrix)
 
@@ -204,4 +216,4 @@ if __name__ == '__main__' :
 
 
     #means_per_speaker = calculate_mean_per_speaker('toy_data', 'toy_data/toy_data_alignment.txt', 'features_data_1.csv', 'norm_data_1.csv', 'mean_data_1.csv')
-    #dist = compute_distances_matrix('toy_data', 'toy_data', 'toy_data/toy_data_alignment.txt', 'feature_chart_1.csv', 'feature_chart_2.csv', 'norm_data_1.csv', 'norm_data_2.csv', 'mean_data_1.csv', 'mean_data_2.csv', 'dist_matrix.csv')
+    #arguments : toy_data_1 toy_data_2 alignment/toy_data_alignment.txt norm_data_1.csv norm_data_2.csv dist_matrix.csv
