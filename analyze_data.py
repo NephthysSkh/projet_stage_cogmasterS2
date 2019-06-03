@@ -2,7 +2,8 @@ import sys
 import os
 import csv
 
-from scipy.spatial.distance import cdist, squareform
+from sklearn.metrics.pairwise import pairwise_distances
+
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -124,7 +125,7 @@ def distance_mean_realization_per_speaker(wav_folder_path_1, wav_folder_path_2, 
     return(distance_matrix)
 
 
-def compute_distances_matrix(wav_folder_path_1, wav_folder_path_2, path_alignment_file, save_path_norm_data_1, save_path_norm_data_2, save_path_distance_matrix):
+def save_normalized_data(wav_folder_path_1, wav_folder_path_2, path_alignment_file, save_path_norm_data_1, save_path_norm_data_2):
 
     alignment = parse_alignment_file(path_alignment_file)
     #sound_file_list = [wav_folder_path + '\\' + f for f in os.listdir(wav_folder_path) if f.endswith('.wav')]
@@ -147,8 +148,8 @@ def compute_distances_matrix(wav_folder_path_1, wav_folder_path_2, path_alignmen
             os.path.join(wav_folder_path_1, sound_file),
             alignment[alignment['file_name'] == sound_file]
         )
-        data = normalization_speaker(midpoints)
-        data.to_csv(
+        data_1 = normalization_speaker(midpoints)
+        data_1.to_csv(
             save_path_norm_data_1, mode='a', header=(i == 0)
         )
 
@@ -160,32 +161,46 @@ def compute_distances_matrix(wav_folder_path_1, wav_folder_path_2, path_alignmen
             os.path.join(wav_folder_path_2, sound_file),
             alignment[alignment['file_name'] == sound_file]
         )
-        data = normalization_speaker(midpoints)
-        data.to_csv(
+        data_2 = normalization_speaker(midpoints)
+        data_2.to_csv(
             save_path_norm_data_2, mode='a', header=(i == 0)
         )
+    return(data_1, data_2)
 
-    df_1 = pd.read_csv(save_path_norm_data_1, index_col=0)
-    df_2 = pd.read_csv(save_path_norm_data_2, index_col=0)
 
-    distance_matrix = cdist(df_1.values, df_2.values, metric ='euclidean')
+def select_data(data_corpus_1, data_corpus_2, selected_data_corpus_1, selected_data_corpus_2, nb_of_rows) :
+    df_1 = pd.read_csv(data_corpus_1, index_col=0)
+    df_2 = pd.read_csv(data_corpus_2, index_col=0)
+
+    df_1.sample(n = nb_of_rows)
+    df_1.to_csv(selected_data_corpus_1, header=True)
+
+    df_2.sample(n = nb_of_rows)
+    df_2.to_csv(selected_data_corpus_2, header=True)
+
+    return(df_1, df_2)
+
+
+def compute_distances_matrix(selected_data_corpus_1, selected_data_corpus_2):
+
+    df_1 = pd.read_csv(selected_data_corpus_1, index_col=0)
+    df_2 = pd.read_csv(selected_data_corpus_2, index_col=0)
+
+    distance_matrix = pairwise_distances(df_1.values, df_2.values, metric ='euclidean')
     distance_matrix = pd.DataFrame(
         distance_matrix, index=df_1.index, columns=df_2.index
     )
-    distance_matrix.to_csv(save_path_distance_matrix, header=True)
-    #print(distance_matrix)
-
-    #mean_distance_matrix = distance_matrix.groupby('phoneme').mean()
-
-    #print(mean_distance_matrix)
-
-    plt.figure()
-    sns.heatmap(distance_matrix, cmap='Blues')
-    plt.savefig('distance_matrix.pdf')
-    plt.show()
 
     return(distance_matrix)
 
+def transform_distance_matrix(dist_matrix) :
+    dist_matrix.index.names = ['phoneme_2']
+    dist_matrix.columns.names = ['phoneme_1']
+    dist_matrix = pd.melt(dist_matrix, id_vars=dist_matrix.index, value_vars=dist_matrix.columns, var_name='pair_of_phonemes')
+
+    #mean_dist_matrix = dist_matrix.groupby('pair_of_phonemes').mean()
+
+    return(dist_matrix)
 
 if __name__ == '__main__' :
     import argparse
@@ -202,18 +217,22 @@ if __name__ == '__main__' :
                         help='path to csv file where normalized feature chart of corpus 1 is saved')
     parser.add_argument('save_path_norm_data_2', metavar='save_norm_2', type=str,
                         help='path to csv file where normalized feature chart of corpus 2 is saved')
-    parser.add_argument('save_path_distance_matrix', metavar='distance_matrix', type=str,
-                        help='path to csv file where final distance matrix is saved')
-    #parser.add_argument('save_path_mean_1', metavar='save_mean_1', type=str,
-                        #help='path to csv file where mean feature chart of corpus 1 is saved')
-    #parser.add_argument('save_path_mean_2', metavar='save_mean_2', type=str,
-                        #help='path to csv file where mean feature chart of corpus 2 is saved')
 
     args = parser.parse_args()
 
-    compute_distances_matrix(args.wav_folder_path_1, args.wav_folder_path_2, args.path_alignment_file, args.save_path_norm_data_1, args.save_path_norm_data_2, args.save_path_distance_matrix)
-    #calculate_mean_per_speaker(args.wav_folder_path_1, args.wav_folder_path_2, args.path_alignment_file, args.save_path_data_1, args.save_path_data_2, args.save_path_norm_data_1, args.save_path_norm_data_2, args.save_path_mean_1, args.save_path_mean_2, args.save_path_distance_matrix)
+    data = save_normalized_data(args.wav_folder_path_1, args.wav_folder_path_2, args.path_alignment_file, args.save_path_norm_data_1, args.save_path_norm_data_2)
+    distances_matrix = compute_distances_matrix('norm_data_1.csv', 'norm_data_2.csv')
+    distances_matrix.to_csv('distances_matrix.csv', header=True)
+    print(distances_matrix)
+    df = transform_distance_matrix(distances_matrix)
+    print(df)
 
+    # plt.figure()
+    # sns.heatmap(df, cmap='Blues')
+    # plt.xlabel("phones corpus 2 (English)")
+    # plt.ylabel("phones corpus 1 (French)")
+    # plt.savefig('distance_matrix.pdf')
+    # plt.show()
 
     #means_per_speaker = calculate_mean_per_speaker('toy_data', 'toy_data/toy_data_alignment.txt', 'features_data_1.csv', 'norm_data_1.csv', 'mean_data_1.csv')
     #arguments : toy_data_1 toy_data_2 alignment/toy_data_alignment.txt norm_data_1.csv norm_data_2.csv dist_matrix.csv
