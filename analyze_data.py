@@ -1,6 +1,7 @@
 import argparse
 import operator
 import os
+import random
 
 from sklearn.cluster import KMeans
 from sklearn.metrics.pairwise import pairwise_distances
@@ -11,6 +12,8 @@ import pandas as pd
 import seaborn as sns
 
 from distances import get_midpoints
+
+random.seed(30)
 
 def parse_alignment_file(path_alignment_file):
     """" creates a dataframe contraining for each phoneme its label, the file, the start time stamp
