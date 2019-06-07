@@ -3,8 +3,8 @@ import operator
 import os
 import random
 
-from sklearn.cluster import KMeans
-from sklearn.metrics.pairwise import pairwise_distances
+#from sklearn.cluster import KMeans
+#from sklearn.metrics.pairwise import pairwise_distances
 from scipy.spatial.distance import cdist
 import matplotlib.pyplot as plt
 import numpy as np
@@ -237,3 +237,6 @@ if __name__ == '__main__' :
 
     #means_per_speaker = calculate_mean_per_speaker('toy_data', 'toy_data/toy_data_alignment.txt', 'features_data_1.csv', 'norm_data_1.csv', 'mean_data_1.csv')
     #arguments : toy_data_1 toy_data_2 alignment/toy_data_alignment.txt norm_data_1.csv norm_data_2.csv dist_matrix.csv
+
+
+# python analyze_data.py /scratch1/projects/challenge2017/final_datasets/datasets/train/french/ /scratch1/projects/challenge2017/final_datasets/datasets/train/english/ /scratch1/projects/challenge2017/final_datasets/alignment/french/alignment_phone.txt /scratch1/projects/challenge2017/final_datasets/alignment/english/alignment_phone.txt /scratch2/elannelongue/ /scratch2/elannelongue/
