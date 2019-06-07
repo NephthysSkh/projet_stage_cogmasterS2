@@ -1,2 +1,2 @@
-import programs.features_charts
-programs.features_charts.combine_time_table()
+import programs.compute_features
+programs.compute_features.combine_time_table()

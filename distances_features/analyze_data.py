@@ -3,8 +3,8 @@ import operator
 import os
 import random
 
-#from sklearn.cluster import KMeans
-#from sklearn.metrics.pairwise import pairwise_distances
+from sklearn.cluster import KMeans
+from sklearn.metrics.pairwise import pairwise_distances
 from scipy.spatial.distance import cdist
 import matplotlib.pyplot as plt
 import numpy as np
