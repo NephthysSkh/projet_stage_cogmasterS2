@@ -54,7 +54,7 @@ def extract_corpus_features(wav_folder_path, alignment, save_path):
     # list the files to process
     alignment_file_list = alignment['file_name'].unique()
     file_list = [name for name in os.listdir(wav_folder_path)]
-    file_list = [i.split('.')[0] for i in file_list]
+    file_list = [os.path.splitext(file_name)[0] for file_name in file_list]
     file_list = [name for name in file_list if name in alignment_file_list] 
 
 
