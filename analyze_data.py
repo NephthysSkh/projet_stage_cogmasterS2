@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
-import matplotlib.pyplot as plt
+
 
 from distances import get_midpoints
 
@@ -249,12 +249,10 @@ if __name__ == '__main__' :
     stdev_distances_matrix.to_csv('distances_matrix_stdev.csv')
     #print(distances_matrix)
 
-    plt.figure()
     sns.heatmap(distances_matrix, cmap='Blues')
     plt.xlabel("phones corpus 2 (English)")
     plt.ylabel("phones corpus 1 (French)")
     plt.savefig('/scratch2/elannelongue/distance_matrix.pdf')
-    plt.show()
 
     #means_per_speaker = calculate_mean_per_speaker('toy_data', 'toy_data/toy_data_alignment.txt', 'features_data_1.csv', 'norm_data_1.csv', 'mean_data_1.csv')
     #arguments : toy_data_1 toy_data_2 alignment/toy_data_alignment_1.txt alignment/toy_data_alignment_2.txt norm_data_1.csv norm_data_2.csv
