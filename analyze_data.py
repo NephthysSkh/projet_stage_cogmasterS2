@@ -52,7 +52,11 @@ def extract_corpus_features(wav_folder_path, alignment, save_path):
     #ENELVER LES .WAV DES NOMS DE FICHIERS
 
     # list the files to process
-    file_list = alignment['file_name'].unique()
+    alignment_file_list = alignment['file_name'].unique()
+    file_list = [name for name in os.listdir(wav_folder_path)]
+    file_list = [i.split('.')[0] for i in file_list]
+    file_list = [name for name in file_list if name in alignment_file_list] 
+
 
     # remove any pre-existing output file
     if os.path.isfile(save_path):
