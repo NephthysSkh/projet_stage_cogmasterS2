@@ -18,8 +18,9 @@ def get_midpoints(sound_file, alignment):
         (alignment['start'] // .01) + (.5 * (alignment['end'] - alignment['start']) // .01)
     ).astype(int)
     # Check that the targetted indices exist - trim some off if necessary.
-    mid_index = mid_index[mid_index.isin(filterbank.index)]
+    valid = mid_index.isin(filterbank.index)
+    mid_index = mid_index[valid]
     # Get a pandas.Series of midpoints with phonemes as index.
     midpoints = filterbank.loc[mid_index]
-    midpoints.index = alignment['phoneme']
+    midpoints.index = alignment[valid]['phoneme']
     return(midpoints)
