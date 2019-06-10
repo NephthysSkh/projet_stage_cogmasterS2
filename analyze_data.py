@@ -52,10 +52,7 @@ def extract_corpus_features(wav_folder_path, alignment, save_path):
     #ENELVER LES .WAV DES NOMS DE FICHIERS
 
     # list the files to process
-    alignment_file_list = alignment['file_name'].unique()
-    file_list = [name for name in os.listdir(wav_folder_path)]
-    file_list = [i.split('.')[0] for i in file_list]
-    file_list = [name for name in alignment_file_list] 
+    file_list = alignment['file_name'].unique()
 
     # remove any pre-existing output file
     if os.path.isfile(save_path):
@@ -65,7 +62,7 @@ def extract_corpus_features(wav_folder_path, alignment, save_path):
     # note: this makes sense because each file is a single speaker
     for i, sound_file in enumerate(file_list):
         midpoints = get_midpoints(
-            os.path.join(wav_folder_path, sound_file),
+            os.path.join(wav_folder_path, sound_file + '.wav'),
             alignment[alignment['file_name'] == sound_file]
         )
         # FIXME: optionally, we may want to only retain the mean

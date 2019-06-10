@@ -12,7 +12,7 @@ def get_midpoints(sound_file, alignment):
     #     :returns: a dataframe with the following columns : "phoneme", "start", "end"
     #     :rtype: a dataframe
 
-    filterbank = get_filter_bank(sound_file+'.wav')
+    filterbank = get_filter_bank(sound_file)
     # Get the index of the midpoint frame for each phoneme as a pd.Series.
     mid_index = (
         (alignment['start'] // .01) + (.5 * (alignment['end'] - alignment['start']) // .01)
