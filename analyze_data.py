@@ -213,18 +213,18 @@ if __name__ == '__main__' :
                         #help='path to csv file where normalized feature chart of corpus 1 is saved')
     #parser.add_argument('save_path_norm_data_2', metavar='save_norm_2', type=str,
                         #help='path to csv file where normalized feature chart of corpus 2 is saved')
-    #parser.add_argument('n_repr', default=0, metavar='n_repr', type=int,
-                        #help='optional maximum number of representatives of a phoneme to use')
-    parser.add_argument('data_corpus_1', metavar='data_corpus_1', type=str,
-                        help='csv file of normalized features of corpus 1 phones')
-    parser.add_argument('data_corpus_2', metavar='data_corpus_2', type=str,
-                        help='csv file of normalized features of corpus 2 phones')
+    #parser.add_argument('data_corpus_1', metavar='data_corpus_1', type=str,
+                        #help='csv file of normalized features of corpus 1 phones')
+    #parser.add_argument('data_corpus_2', metavar='data_corpus_2', type=str,
+                        #help='csv file of normalized features of corpus 2 phones')
     parser.add_argument('selected_data_corpus_1', metavar='selected_data_corpus_1', type=str,
                         help='save path for randomly selected lines of the data_corpus_1 csv files')
     parser.add_argument('selected_data_corpus_2', metavar='selected_data_corpus_2', type=str,
                         help='save path for randomly selected lines of the data_corpus_2 csv files')
-    parser.add_argument('nb_of_rows', metavar='nb_of_rows', type=int,
-                        help='number of selected rows')
+    #parser.add_argument('nb_of_rows', metavar='nb_of_rows', type=int,
+                        #help='number of selected rows')
+    parser.add_argument('n_repr', default=0, metavar='n_repr', type=int,
+                        help='optional maximum number of representatives of a phoneme to use')
 
 
     args = parser.parse_args()
@@ -235,25 +235,25 @@ if __name__ == '__main__' :
     #     args.save_path_norm_data_1, args.save_path_norm_data_2
     # )
 
-    select_data(
-        args.data_corpus_1, args.data_corpus_2, 
-        args.selected_data_corpus_1, args.selected_data_corpus_2, 
-        args.nb_of_rows)
+    #select_data(
+    #    args.data_corpus_1, args.data_corpus_2, 
+    #    args.selected_data_corpus_1, args.selected_data_corpus_2, 
+    #    args.nb_of_rows)
 
-    #distances_matrix, stdev_distances_matrix = compute_distances_matrix(
-    #    args.selected_data_corpus_1, args.selected_data_corpus_2, args.n_repr
-    #)
+    distances_matrix, stdev_distances_matrix = compute_distances_matrix(
+        args.selected_data_corpus_1, args.selected_data_corpus_2, args.n_repr
+    )
 
-    #distances_matrix.to_csv('distances_matrix.csv')
-    #stdev_distances_matrix.to_csv('distances_matrix_stdev.csv')
+    distances_matrix.to_csv('distances_matrix.csv')
+    stdev_distances_matrix.to_csv('distances_matrix_stdev.csv')
     #print(distances_matrix)
 
-    # plt.figure()
-    # sns.heatmap(distances_matrix, cmap='Blues')
-    # plt.xlabel("phones corpus 2 (English)")
-    # plt.ylabel("phones corpus 1 (French)")
-    # plt.savefig('/scratch2/elannelongue/distance_matrix.pdf')
-    # plt.show()
+    plt.figure()
+    sns.heatmap(distances_matrix, cmap='Blues')
+    plt.xlabel("phones corpus 2 (English)")
+    plt.ylabel("phones corpus 1 (French)")
+    plt.savefig('/scratch2/elannelongue/distance_matrix.pdf')
+    #plt.show()
 
     #means_per_speaker = calculate_mean_per_speaker('toy_data', 'toy_data/toy_data_alignment.txt', 'features_data_1.csv', 'norm_data_1.csv', 'mean_data_1.csv')
     #arguments : toy_data_1 toy_data_2 alignment/toy_data_alignment_1.txt alignment/toy_data_alignment_2.txt norm_data_1.csv norm_data_2.csv
@@ -261,3 +261,4 @@ if __name__ == '__main__' :
 
 # python analyze_data.py /scratch1/projects/challenge2017/final_datasets/datasets/train/french/ /scratch1/projects/challenge2017/final_datasets/datasets/train/english/ /scratch1/projects/challenge2017/final_datasets/alignment/french/alignment_phone.txt /scratch1/projects/challenge2017/final_datasets/alignment/english/alignment_phone.txt /scratch2/elannelongue/norm_data_french.csv /scratch2/elannelongue/norm_data_english.csv
 # python analyze_data.py /scratch2/elannelongue/norm_data_french.csv /scratch2/elannelongue/norm_data_english.csv /scratch2/elannelongue/selected_data_french_100lines.csv /scratch2/elannelongue/selected_data_english_100lines.csv 100
+# python analyze_data.py /scratch2/elannelongue/selected_data_french_100lines.csv /scratch2/elannelongue/selected_data_english_100lines.csv
