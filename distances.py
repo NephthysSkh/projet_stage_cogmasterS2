@@ -1,8 +1,8 @@
 import pandas as pd
-from compute_features import get_filter_bank
+from compute_features import get_features
 
 
-def get_midpoints(sound_file, alignment):
+def get_midpoints(sound_file, alignment, chosen_processor):
     # Gets the midpoint vector for each phoneme
 
     #     :param sound_file : a sound file in format .wav
@@ -12,7 +12,7 @@ def get_midpoints(sound_file, alignment):
     #     :returns: a dataframe with the following columns : "phoneme", "start", "end"
     #     :rtype: a dataframe
 
-    filterbank = get_filter_bank(sound_file)
+    filterbank = get_features(sound_file, chosen_processor)
     # Get the index of the midpoint frame for each phoneme as a pd.Series.
     mid_index = (
         (alignment['start'] // .01) + (.5 * (alignment['end'] - alignment['start']) // .01)

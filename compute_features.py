@@ -1,19 +1,30 @@
-import scipy.io.wavfile as wav
+import numpy as np
 import pandas as pd
-from python_speech_features import mfcc
-from python_speech_features import logfbank
+
+from shennong.audio import Audio
+from shennong.features.processor.filterbank import FilterbankProcessor
+from shennong.features.processor.plp import PlpProcessor
+from shennong.features.processor.rastaplp import RastaPlpProcessor
+from shennong.features.processor.bottleneck import BottleneckProcessor
 
 
-def get_filter_bank(sound_file) :
-    # computes the filter bank coefficients of a sound file
+
+def get_features(sound_file, chosen_processor) :
+    # computes the feature coefficients of a sound file
 
     #     :param sound_file : sound file in format .wav
     #     :type amount: .wav file
-    #     :returns: 26 filterbank coefficients per frame of 25ms every 10ms
+    #     :returns: feature coefficients per frame of 25ms every 10ms can be 'filterbank'
+    #     'plp', 'rasteplp' or 'bottleneck'
     #     :rtype: a numpy array
 
-    (rate,sig) = wav.read(sound_file)
-    fbank_feat = logfbank(sig,rate)
-    fbank_feat = pd.DataFrame(fbank_feat)
-    fbank_feat.columns = ['filterbank_%s' % i for i in range(26)]
-    return(fbank_feat)
+    audio = Audio.load(sound_file)
+    processors = {
+        'filterbank': FilterbankProcessor(sample_rate=audio.sample_rate),
+        'plp': PlpProcessor(sample_rate=audio.sample_rate),
+        'rastaplp': RastaPlpProcessor(sample_rate=audio.sample_rate),
+        'bottleneck': BottleneckProcessor(weights='BabelMulti')}
+
+    features = chosen_processor.process(audio)
+    features = pd.DataFrame(features)
+    return(features)
