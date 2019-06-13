@@ -42,7 +42,7 @@ def normalize_features(dataframe) :
 
     return (dataframe - dataframe.mean()) / dataframe.std()
 
-def extract_corpus_features(wav_folder_path, alignment, save_path):
+def extract_corpus_features(wav_folder_path, alignment, save_path, chosen_processor):
     # extract, normalize and save midpoint features from files in a folder
 
     #      :param wav_folder_path : sound folder path
@@ -68,7 +68,8 @@ def extract_corpus_features(wav_folder_path, alignment, save_path):
     for i, sound_file in enumerate(file_list):
         midpoints = get_midpoints(
             os.path.join(wav_folder_path, sound_file + '.wav'),
-            alignment[alignment['file_name'] == sound_file]
+            alignment[alignment['file_name'] == sound_file],
+            chosen_processor
         )
         # FIXME: optionally, we may want to only retain the mean
         #        observation for each phoneme (for each speaker)
@@ -78,7 +79,7 @@ def extract_corpus_features(wav_folder_path, alignment, save_path):
         data.to_csv(save_path, mode='a', header=(i == 0))
 
 
-def save_normalized_data(wav_folder_path_1, wav_folder_path_2, path_alignment_file_1, path_alignment_file_2, save_path_norm_data_1, save_path_norm_data_2):
+def save_normalized_data(wav_folder_path_1, wav_folder_path_2, path_alignment_file_1, path_alignment_file_2, save_path_norm_data_1, save_path_norm_data_2, chosen_processor):
     # saves normalized data
 
     #      :param wav_folder_path_1 : sound folder containing corpus 1
@@ -98,12 +99,14 @@ def save_normalized_data(wav_folder_path_1, wav_folder_path_2, path_alignment_fi
     alignment_1 = parse_alignment_file(path_alignment_file_1)
     # process the first corpus
     extract_corpus_features(
-        wav_folder_path_1, alignment_1, save_path_norm_data_1
+        wav_folder_path_1, alignment_1, save_path_norm_data_1,
+        chosen_processor
     )
     # process the second corpus
     alignment_2 = parse_alignment_file(path_alignment_file_2)
     extract_corpus_features(
-        wav_folder_path_2, alignment_2, save_path_norm_data_2
+        wav_folder_path_2, alignment_2, save_path_norm_data_2,
+        chosen_processor
     )
 
 
@@ -202,59 +205,61 @@ def get_distance_moments(feats_1, feats_2, n_repr=0):
 if __name__ == '__main__' :
     parser = argparse.ArgumentParser(
         description='Compute distance matrix between features extracted from corpus 1 and corpus 2')
-    # parser.add_argument('wav_folder_path_1', metavar='path_1', type=str,
-    #                     help='path to wav folder containing the data of corpus 1')
-    # parser.add_argument('wav_folder_path_2', metavar='path_2', type=str,
-    #                     help='path to wav folder containing the data of corpus 2')
-    # parser.add_argument('path_alignment_file_1', metavar='alignment_file', type=str,
-    #                     help='path to the alignment file 1')
-    # parser.add_argument('path_alignment_file_2', metavar='alignment_file', type=str,
-    #                     help='path to the alignment file 2')
-    # parser.add_argument('save_path_norm_data_1', metavar='save_norm_1', type=str,
-    #                     help='path to csv file where normalized feature chart of corpus 1 is saved')
-    # parser.add_argument('save_path_norm_data_2', metavar='save_norm_2', type=str,
-    #                     help='path to csv file where normalized feature chart of corpus 2 is saved')
+    parser.add_argument('wav_folder_path_1', metavar='path_1', type=str,
+                        help='path to wav folder containing the data of corpus 1')
+    parser.add_argument('wav_folder_path_2', metavar='path_2', type=str,
+                        help='path to wav folder containing the data of corpus 2')
+    parser.add_argument('path_alignment_file_1', metavar='alignment_file', type=str,
+                        help='path to the alignment file 1')
+    parser.add_argument('path_alignment_file_2', metavar='alignment_file', type=str,
+                        help='path to the alignment file 2')
+    parser.add_argument('save_path_norm_data_1', metavar='save_norm_1', type=str,
+                        help='path to csv file where normalized feature chart of corpus 1 is saved')
+    parser.add_argument('save_path_norm_data_2', metavar='save_norm_2', type=str,
+                        help='path to csv file where normalized feature chart of corpus 2 is saved')
+    parser.add_argument('chosen_processor', metavar='save_norm_2', type=str,
+                        help='type of features to be used')
     # parser.add_argument('data_corpus_1', metavar='data_corpus_1', type=str,
     #                     help='csv file of normalized features of corpus 1 phones')
     # parser.add_argument('data_corpus_2', metavar='data_corpus_2', type=str,
     #                     help='csv file of normalized features of corpus 2 phones')
-    parser.add_argument('selected_data_corpus_1', metavar='selected_data_corpus_1', type=str,
-                        help='save path for randomly selected lines of the data_corpus_1 csv files')
-    parser.add_argument('selected_data_corpus_2', metavar='selected_data_corpus_2', type=str,
-                        help='save path for randomly selected lines of the data_corpus_2 csv files')
+    # parser.add_argument('selected_data_corpus_1', metavar='selected_data_corpus_1', type=str,
+    #                     help='save path for randomly selected lines of the data_corpus_1 csv files')
+    # parser.add_argument('selected_data_corpus_2', metavar='selected_data_corpus_2', type=str,
+    #                     help='save path for randomly selected lines of the data_corpus_2 csv files')
     # parser.add_argument('nb_of_rows', metavar='nb_of_rows', type=int,
     #                     help='number of selected rows')
-    parser.add_argument('n_repr', default=0, metavar='n_repr', type=int,
-                        help='optional maximum number of representatives of a phoneme to use')
+    # parser.add_argument('n_repr', default=0, metavar='n_repr', type=int,
+    #                     help='optional maximum number of representatives of a phoneme to use')
 
 
     args = parser.parse_args()
 
-    #save_normalized_data(
-    #     args.wav_folder_path_1, args.wav_folder_path_2,
-    #     args.path_alignment_file_1, args.path_alignment_file_2,
-    #     args.save_path_norm_data_1, args.save_path_norm_data_2
-    # )
+    save_normalized_data(
+         args.wav_folder_path_1, args.wav_folder_path_2,
+         args.path_alignment_file_1, args.path_alignment_file_2,
+         args.save_path_norm_data_1, args.save_path_norm_data_2
+     )
 
     # select_data(
     #     args.data_corpus_1, args.data_corpus_2, 
     #     args.selected_data_corpus_1, args.selected_data_corpus_2, 
     #     args.nb_of_rows)
 
-    distances_matrix, stdev_distances_matrix = compute_distances_matrix(
-         args.selected_data_corpus_1, args.selected_data_corpus_2, args.n_repr
-     )
+    # distances_matrix, stdev_distances_matrix = compute_distances_matrix(
+    #      args.selected_data_corpus_1, args.selected_data_corpus_2, args.n_repr
+    #  )
 
-    distances_matrix.to_csv('distances_matrix.csv')
-    stdev_distances_matrix.to_csv('distances_matrix_stdev.csv')
+    # distances_matrix.to_csv('distances_matrix.csv')
+    # stdev_distances_matrix.to_csv('distances_matrix_stdev.csv')
     #print(distances_matrix)
 
-    plt.switch_backend('agg')
-    sns.heatmap(distances_matrix, cmap='Blues')
-    plt.xlabel("phones corpus 2 (English)")
-    plt.ylabel("phones corpus 1 (French)")
-    plt.savefig('/scratch2/elannelongue/distance_matrix.pdf')
-    plt.show()
+    # plt.switch_backend('agg')
+    # sns.heatmap(distances_matrix, cmap='Blues')
+    # plt.xlabel("phones corpus 2 (English)")
+    # plt.ylabel("phones corpus 1 (French)")
+    # plt.savefig('/scratch2/elannelongue/distance_matrix.pdf')
+    # plt.show()
 
     #means_per_speaker = calculate_mean_per_speaker('toy_data', 'toy_data/toy_data_alignment.txt', 'features_data_1.csv', 'norm_data_1.csv', 'mean_data_1.csv')
     #arguments : toy_data_1 toy_data_2 alignment/toy_data_alignment_1.txt alignment/toy_data_alignment_2.txt norm_data_1.csv norm_data_2.csv
