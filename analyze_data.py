@@ -239,6 +239,7 @@ if __name__ == '__main__' :
          args.wav_folder_path_1, args.wav_folder_path_2,
          args.path_alignment_file_1, args.path_alignment_file_2,
          args.save_path_norm_data_1, args.save_path_norm_data_2
+         args.chosen_processor
      )
 
     # select_data(
